@@ -24,3 +24,11 @@ Update `store` module to use `xml-storage` instead of `jdbc-storage`.
 1. Include latest `xml-storage` dependency.
 2. Update `Runner` class to create `StoreApp` based on JAXB XML storage.
 3. Add examples that demonstrates `update`, `delete`, `find by id` operations.
+
+
+Note
+---------------
+This task is connected with: 
+1. https://github.com/ChangeRequest/dependency-management.hw1 
+2. https://github.com/ChangeRequest/logging.hw1
+3. https://github.com/ChangeRequest/jdbc.pr1
