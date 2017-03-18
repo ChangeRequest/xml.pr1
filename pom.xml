@@ -16,6 +16,7 @@
         <module>persistence-api</module>
         <module>store</module>
         <module>jdbc-storage</module>
+        <module>xml-storage</module>
     </modules>
 
     <properties>
