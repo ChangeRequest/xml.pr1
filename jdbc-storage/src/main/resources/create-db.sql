@@ -63,14 +63,3 @@ CREATE TABLE IF NOT EXISTS catalog_items (
   FOREIGN KEY (item_id) REFERENCES item (id),
   UNIQUE (catalog_id, item_id)
 );
-
-INSERT INTO category (title, description) VALUES ('Cars', 'Some pretty cars should be here.');
-INSERT INTO category (title, description) VALUES ('Cats', 'Some pretty cats should be here.');
-
-INSERT INTO property (name, value) VALUES ('Size', 'Small');
-INSERT INTO property (name, value) VALUES ('Size', 'Medium');
-INSERT INTO property (name, value) VALUES ('Size', 'Long');
-INSERT INTO property (name, value) VALUES ('Size', 'Extra Long');
-
-INSERT INTO item (title, description, price) VALUES ('Skoda', 'Skoda - super car', 99999);
-INSERT INTO item (title, description, price) VALUES ('Kotofei', 'Kotofei - super cat!', 1);

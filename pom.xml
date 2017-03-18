@@ -22,6 +22,7 @@
         <persistence-api.version>1.0-SNAPSHOT</persistence-api.version>
         <storage.version>1.0-SNAPSHOT</storage.version>
         <in-memory-storage.version>1.0-SNAPSHOT</in-memory-storage.version>
+        <jdbc-storage.version>1.0-SNAPSHOT</jdbc-storage.version>
         <model.version>1.0-SNAPSHOT</model.version>
         <api.version>1.0-SNAPSHOT</api.version>
 

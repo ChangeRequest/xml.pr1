@@ -17,6 +17,11 @@
             <artifactId>api</artifactId>
             <version>${api.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.changerequest.store</groupId>
+            <artifactId>jdbc-storage</artifactId>
+            <version>${jdbc-storage.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

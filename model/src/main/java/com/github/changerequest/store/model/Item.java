@@ -1,17 +1,30 @@
 package com.github.changerequest.store.model;
 
-import com.github.changerequest.store.persistenceapi.StoredEntity;
+import com.github.changerequest.store.persistenceapi.AbstractStoredEntity;
 
 import java.util.List;
 
-public class Item implements StoredEntity<Long> {
+public class Item extends AbstractStoredEntity<Long> {
 
     private Long id;
     private String title;
-    private List<Category> categories;
-    private double price;
     private String description;
+    private double price;
     private List<Property> properties;
+    private List<Category> categories;
+
+    public Item() {
+
+    }
+
+    public Item(Long id, String title, String description, double price, List<Property> properties, List<Category> categories) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.price = price;
+        this.properties = properties;
+        this.categories = categories;
+    }
 
     public Long getId() {
         return id;
@@ -59,20 +72,6 @@ public class Item implements StoredEntity<Long> {
 
     public void setProperties(List<Property> properties) {
         this.properties = properties;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof Item)) {
-            return false;
-        }
-        Item item = (Item) o;
-        return id != null ? id.equals(item.id) : item.id == null;
-    }
-
-    @Override
-    public int hashCode() {
-        return id != null ? id.hashCode() : 0;
     }
 
     @Override

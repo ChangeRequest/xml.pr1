@@ -6,13 +6,9 @@ import com.github.changerequest.store.storage.Storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public class InMemoryStorage<T extends StoredEntity<ID>, ID> implements Storage<T, ID> {
+public class InMemoryStorage<ID, T extends StoredEntity<ID>> implements Storage<ID, T> {
 
     private static final Logger log = LoggerFactory.getLogger(InMemoryStorage.class);
 

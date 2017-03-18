@@ -1,12 +1,22 @@
 package com.github.changerequest.store.model;
 
-import com.github.changerequest.store.persistenceapi.StoredEntity;
+import com.github.changerequest.store.persistenceapi.AbstractStoredEntity;
 
-public class Category implements StoredEntity<Long> {
+public class Category extends AbstractStoredEntity<Long> {
 
     private Long id;
     private String title;
     private String description;
+
+    public Category() {
+
+    }
+
+    public Category(Long id, String title, String description) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+    }
 
     public Long getId() {
         return id;

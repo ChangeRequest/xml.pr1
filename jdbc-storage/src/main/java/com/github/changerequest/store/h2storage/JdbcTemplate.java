@@ -119,4 +119,15 @@ public class JdbcTemplate {
             ps.setObject(i + 1, params[i]);
         }
     }
+
+    private enum JdbcTemplateSingleton {
+        INSTANCE;
+
+        @SuppressWarnings("NonSerializableFieldInSerializableClass")
+        private final JdbcTemplate value = new JdbcTemplate();
+    }
+
+    public static JdbcTemplate getInstance() {
+        return JdbcTemplate.JdbcTemplateSingleton.INSTANCE.value;
+    }
 }

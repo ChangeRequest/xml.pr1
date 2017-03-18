@@ -1,14 +1,23 @@
 package com.github.changerequest.store.model;
 
-import com.github.changerequest.store.persistenceapi.StoredEntity;
+import com.github.changerequest.store.persistenceapi.AbstractStoredEntity;
 
 import java.util.List;
 
-public class Catalog implements StoredEntity<Long> {
+public class Catalog extends AbstractStoredEntity<Long> {
 
     private Long id;
     private String name;
     private List<Item> items;
+
+    public Catalog() {
+    }
+
+    public Catalog(Long id, String name, List<Item> items) {
+        this.id = id;
+        this.name = name;
+        this.items = items;
+    }
 
     public Long getId() {
         return id;
@@ -36,6 +45,6 @@ public class Catalog implements StoredEntity<Long> {
 
     @Override
     public String toString() {
-        return "Catalog#"+ id + ": " + name;
+        return "Catalog#" + id + ": " + name;
     }
 }

@@ -1,20 +1,23 @@
 package com.github.changerequest.store.h2storage;
 
+import com.github.changerequest.store.h2storage.mapper.ItemRowMapper;
 import com.github.changerequest.store.h2storage.mapper.RowMapper;
 import com.github.changerequest.store.model.Catalog;
 import com.github.changerequest.store.model.Item;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.util.List;
 
 public class CatalogJdbcStorage extends AbstractJdbcStorage<Catalog> {
     private static final String INSERT_CATALOG = "INSERT INTO catalog (NAME) VALUES (?)";
-    private static final String INSERT_CATALOG_ITEM = "INSERT INTO catalog_item (catalog_id, item_id) VALUES(?,?)";
+    private static final String INSERT_CATALOG_ITEM = "INSERT INTO catalog_items (catalog_id, item_id) VALUES(?,?)";
     private static final String DELETE_CATALOG_BY_ID = "DELETE FROM catalog WHERE ID=?";
     private static final String DELETE_CATALOG_ITEMS_BY_CATALOG_ID = "DELETE FROM catalog_items WHERE CATALOG_ID=?";
     private static final String UPDATE_CATALOG_BY_ID = "UPDATE catalog SET name=? WHERE id=?";
     private static final String SELECT_CATALOGS = "SELECT * FROM catalog";
     private static final String SELECT_CATALOG_BY_ID = "SELECT * FROM catalog WHERE id=?";
+    private static final String SELECT_ITEMS_BY_CATALOG_ID = "SELECT * FROM item WHERE id in (SELECT item_id FROM catalog_items WHERE catalog_id=?)";
 
     public CatalogJdbcStorage(DataSource dataSource, JdbcTemplate jdbcTemplate, RowMapper<Catalog> rowMapper) {
         super(dataSource, jdbcTemplate, rowMapper);
@@ -31,7 +34,7 @@ public class CatalogJdbcStorage extends AbstractJdbcStorage<Catalog> {
     }
 
     @Override
-    protected void runBeforeDeleteQuery(final Long id, final Connection connection) {
+    protected void deleteRelations(final Long id, final Connection connection) {
         jdbcTemplate.executeUpdateOrDeleteQuery(DELETE_CATALOG_ITEMS_BY_CATALOG_ID, toSqlParams(id), connection);
     }
 
@@ -66,5 +69,11 @@ public class CatalogJdbcStorage extends AbstractJdbcStorage<Catalog> {
             saveCatalogItemRelations(entity);
             return entity;
         });
+    }
+
+    @Override
+    protected void populateRelations(Catalog result, Connection connection) {
+        List<Item> items = jdbcTemplate.queryForList(SELECT_ITEMS_BY_CATALOG_ID, toSqlParams(result.getId()), new ItemRowMapper(), connection);
+        result.setItems(items);
     }
 }

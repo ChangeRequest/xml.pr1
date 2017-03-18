@@ -1,12 +1,17 @@
 package com.github.changerequest.store.model;
 
-import com.github.changerequest.store.persistenceapi.StoredEntity;
+import com.github.changerequest.store.persistenceapi.AbstractStoredEntity;
 
-public class Property implements StoredEntity<Long> {
+public class Property extends AbstractStoredEntity<Long> {
 
     private Long id;
     private String key;
     private String value;
+
+    public Property(Long id, String key, String value) {
+        this(key, value);
+        this.id = id;
+    }
 
     public Property(String key, String value) {
         this.key = key;

@@ -1,15 +1,7 @@
 package com.github.changerequest.store;
 
-import com.github.changerequest.store.api.BasketApi;
-import com.github.changerequest.store.api.repositories.CatalogRepository;
-import com.github.changerequest.store.api.repositories.CategoryRepository;
-import com.github.changerequest.store.api.repositories.ItemRepository;
-import com.github.changerequest.store.inmemmorystorage.InMemoryStorage;
-import com.github.changerequest.store.inmemmorystorage.LongIdGenerator;
-import com.github.changerequest.store.model.Catalog;
-import com.github.changerequest.store.model.Category;
-import com.github.changerequest.store.model.Item;
-import com.github.changerequest.store.model.Property;
+import com.github.changerequest.store.api.*;
+import com.github.changerequest.store.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,23 +13,26 @@ import static java.util.Collections.unmodifiableList;
 public class StoreApp {
 
     private static final Logger log = LoggerFactory.getLogger(StoreApp.class);
-
+    private final Basket basket;
     private BasketApi basketApi;
     private CategoryRepository categoryRepository;
     private CatalogRepository catalogRepository;
     private ItemRepository itemRepository;
+    private PropertyRepository propertyRepository;
 
     public StoreApp(BasketApi basketApi, CategoryRepository categoryRepository, CatalogRepository catalogRepository,
-            ItemRepository itemRepository) {
+                    ItemRepository itemRepository, PropertyRepository propertyRepository) {
         this.basketApi = basketApi;
         this.categoryRepository = categoryRepository;
         this.catalogRepository = catalogRepository;
         this.itemRepository = itemRepository;
+        this.propertyRepository = propertyRepository;
+        basket = new Basket();
     }
 
     public void checkout() {
         log.debug("Doing checkout");
-        Map<Item, Integer> items = basketApi.checkout();
+        Map<Item, Integer> items = basketApi.checkout(basket);
         if (items.isEmpty()) {
             log.warn("There are no items to checkout");
             return;
@@ -63,7 +58,7 @@ public class StoreApp {
         log.debug("Printing last {} items in the basket", n);
         String format = "%3s | %30.30s | %60.60s | %7s | %20s | %s ";
         System.out.println(String.format(format, "#", "Title", "Description", "Price", "Categories", "Properties"));
-        List<Item> lastItems = basketApi.getLast(n);
+        List<Item> lastItems = basketApi.getLast(basket, n);
         if (lastItems.isEmpty()) {
             log.warn("There are no {} last items in the basket", n);
             return;
@@ -95,9 +90,10 @@ public class StoreApp {
                 continue;
             }
             for (Item item : items) {
-                log.trace("Printing item {}", item);
-                System.out.println(String.format(format, item.getId(), item.getTitle(), item.getDescription(),
-                        item.getPrice(), item.getCategories(), item.getProperties()));
+                Item loadedItem = itemRepository.find(item.getId());
+                log.trace("Printing item {}", loadedItem);
+                System.out.println(String.format(format, loadedItem.getId(), loadedItem.getTitle(), loadedItem.getDescription(),
+                        loadedItem.getPrice(), loadedItem.getCategories(), loadedItem.getProperties()));
             }
             System.out.println();
         }
@@ -125,7 +121,7 @@ public class StoreApp {
     }
 
     public Item createItem(String title, String description, double price, List<Category> categories,
-            List<Property> properties) {
+                           List<Property> properties) {
         log.debug("Creating new item {}", title);
         Item item = new Item();
         item.setTitle(title);
@@ -138,17 +134,25 @@ public class StoreApp {
         return savedItem;
     }
 
+    public Property createProperty(String key, String value) {
+        log.debug("Creating new property {}", key);
+        Property property = new Property(key, value);
+        Property savedProperty = propertyRepository.saveOrUpdate(property);
+        log.debug("Created property {}", property);
+        return savedProperty;
+    }
+
     public List<Item> getAllItems() {
         return itemRepository.getAll();
     }
 
     public void addItemToBasket(Item item) {
-        basketApi.add(item);
+        basketApi.add(basket, item);
         log.debug("Item #{} was added to the basket", item.getId());
     }
 
     public void removeItemFromBasket(Item item) {
-        basketApi.remove(item);
+        basketApi.remove(basket, item);
         log.debug("Item #{} was removed from basket", item.getId());
     }
 }

@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.function.Function;
 
-public abstract class AbstractJdbcStorage<T extends StoredEntity<Long>> implements Storage<T, Long> {
+public abstract class AbstractJdbcStorage<T extends StoredEntity<Long>> implements Storage<Long, T> {
     private Connection connection;
     protected final DataSource dataSource;
     protected final JdbcTemplate jdbcTemplate;
@@ -26,8 +26,13 @@ public abstract class AbstractJdbcStorage<T extends StoredEntity<Long>> implemen
     public T findOne(final Long id) {
         return runInTransaction((connection) -> {
             final T result = jdbcTemplate.queryForObject(getSelectByIdQuery(), toSqlParams(id), rowMapper, connection);
+            populateRelations(result, connection);
             return result;
         });
+    }
+
+    protected void populateRelations(T result, Connection connection) {
+
     }
 
     protected abstract String getSelectByIdQuery();
@@ -35,13 +40,13 @@ public abstract class AbstractJdbcStorage<T extends StoredEntity<Long>> implemen
     @Override
     public void delete(final Long id) {
         runInTransaction((connection) -> {
-            runBeforeDeleteQuery(id, connection);
+            deleteRelations(id, connection);
             jdbcTemplate.executeUpdateOrDeleteQuery(getDeleteByIdQuery(), toSqlParams(id), connection);
             return null;
         });
     }
 
-    protected void runBeforeDeleteQuery(final Long id, final Connection connection) {
+    protected void deleteRelations(final Long id, final Connection connection) {
 
     }
 
@@ -51,6 +56,9 @@ public abstract class AbstractJdbcStorage<T extends StoredEntity<Long>> implemen
     public List<T> findAll() {
         return runInTransaction((connection) -> {
             final List<T> result = jdbcTemplate.queryForList(getSelectAllQuery(), new Object[]{}, rowMapper, connection);
+            for (T entity : result) {
+                populateRelations(entity, connection);
+            }
             return result;
         });
     }

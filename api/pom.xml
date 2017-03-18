@@ -27,11 +27,6 @@
             <artifactId>storage</artifactId>
             <version>${storage.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.github.changerequest.store</groupId>
-            <artifactId>in-memory-storage</artifactId>
-            <version>${in-memory-storage.version}</version>
-        </dependency>
     </dependencies>
 
 </project>

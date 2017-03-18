@@ -1,23 +1,18 @@
 package com.github.changerequest.store;
 
-import com.github.changerequest.store.api.BasketApi;
-import com.github.changerequest.store.api.repositories.CatalogRepository;
-import com.github.changerequest.store.api.repositories.CategoryRepository;
-import com.github.changerequest.store.api.repositories.ItemRepository;
-import com.github.changerequest.store.inmemmorystorage.InMemoryStorage;
-import com.github.changerequest.store.inmemmorystorage.LongIdGenerator;
+import com.github.changerequest.store.api.impl.*;
+import com.github.changerequest.store.h2storage.*;
+import com.github.changerequest.store.h2storage.mapper.*;
 import com.github.changerequest.store.model.Catalog;
 import com.github.changerequest.store.model.Category;
 import com.github.changerequest.store.model.Item;
 import com.github.changerequest.store.model.Property;
+import com.github.changerequest.store.storage.Storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
+import javax.sql.DataSource;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -27,11 +22,14 @@ public class Runner {
 
     private static final Logger log = LoggerFactory.getLogger(Runner.class);
 
+    private static final String SIZE_PROPERTY_KEY = "size";
+    private static final String MANUFACTURER_PROPERTY_KEY = "manufacturer";
+
     public static void main(String[] args) {
         log.info("Started Store App at {}", System.currentTimeMillis());
         StoreApp storeApp = createStoreApp();
         log.debug("Creating Testing Data");
-        createTestData(storeApp);
+//        createTestData(storeApp);
         log.debug("Printing Catalogs");
         storeApp.showAllCatalogs();
         log.debug("Adding items to basket");
@@ -43,39 +41,42 @@ public class Runner {
         log.debug("Doing checkout");
         storeApp.checkout();
 
-        log.info("Testing warn+ logging for storage module");
-        testLoggingForStorage(20);
-        log.info("Testing warn logging for api module");
-        testLoggingForApi(20);
         log.info("Finished Store App at {}", System.currentTimeMillis());
     }
 
     private static StoreApp createStoreApp() {
-        return new StoreApp(new BasketApi(),
-                new CategoryRepository(new InMemoryStorage<>(new LongIdGenerator())),
-                new CatalogRepository(new InMemoryStorage<>(new LongIdGenerator())),
-                new ItemRepository(new InMemoryStorage<>(new LongIdGenerator())));
+        DataSource dataSource = ConnectionManager.getInstance().getDataSource();
+        JdbcTemplate jdbcTemplate = JdbcTemplate.getInstance();
+        return new StoreApp(new BasketApiImpl(),
+                new CategoryRepositoryImpl(categoryStorage(dataSource, jdbcTemplate)),
+                new CatalogRepositoryImpl(catalogStorage(dataSource, jdbcTemplate)),
+                new ItemRepositoryImpl(itemStorage(dataSource, jdbcTemplate)),
+                new PropertyRepositoryImpl(propertyStorage(dataSource, jdbcTemplate)));
     }
 
-    private static void testLoggingForApi(int count) {
-        ItemRepository itemRepository = new ItemRepository(new InMemoryStorage<>(new LongIdGenerator()));
-        for (int i = 0; i < count; ++i) {
-            itemRepository.find(null);
-            itemRepository.saveOrUpdate(null);
-            itemRepository.remove(null);
-        }
+    private static Storage<Long, Catalog> catalogStorage(DataSource dataSource, JdbcTemplate jdbcTemplate) {
+        RowMapper<Catalog> rowMapper = new CatalogRowMapper();
+        Storage<Long, Catalog> storage = new CatalogJdbcStorage(dataSource, jdbcTemplate, rowMapper);
+        return storage;
     }
 
-    private static void testLoggingForStorage(int count) {
-        InMemoryStorage<Item, Long> inMemoryStorage = new InMemoryStorage<>(new LongIdGenerator());
-        for (int i = 0; i < count; ++i) {
-            try {
-                Item item = new Item();
-                inMemoryStorage.update(item);
-            } catch (IllegalArgumentException ex) {
-                log.debug("Exception update for item that doesn't exist was caught as expected");
-            }
-        }
+    private static Storage<Long, Category> categoryStorage(DataSource dataSource, JdbcTemplate jdbcTemplate) {
+        RowMapper<Category> rowMapper = new CategoryRowMapper();
+        Storage<Long, Category> storage = new CategoryJdbcStorage(dataSource, jdbcTemplate, rowMapper);
+        return storage;
+    }
+
+
+    private static Storage<Long, Item> itemStorage(DataSource dataSource, JdbcTemplate jdbcTemplate) {
+        RowMapper<Item> rowMapper = new ItemRowMapper();
+        Storage<Long, Item> storage = new ItemJdbcStorage(dataSource, jdbcTemplate, rowMapper);
+        return storage;
+    }
+
+    private static Storage<Long, Property> propertyStorage(DataSource dataSource, JdbcTemplate jdbcTemplate) {
+        RowMapper<Property> rowMapper = new PropertyRowMapper();
+        Storage<Long, Property> storage = new PropertyJdbcStorage(dataSource, jdbcTemplate, rowMapper);
+        return storage;
     }
 
     private static List<Item> removeItemsFromBasket(StoreApp storeApp, List<Item> itemsInTheBasket) {
@@ -120,16 +121,21 @@ public class Runner {
     private static void createTestData(StoreApp storeApp) {
         Category toys = storeApp.createCategory("Toys", "Toys for children");
         Category cloth = storeApp.createCategory("Cloth", "Cloth for children");
-
+        Property smallToySize = storeApp.createProperty(SIZE_PROPERTY_KEY, "10");
+        Property cnManufacturer = storeApp.createProperty(MANUFACTURER_PROPERTY_KEY, "CN");
         Item smallToy = storeApp.createItem("Small butterfly", "Small handmade butterfly", 99, singletonList(toys),
-                asList(new Property("size", "10"), new Property("manufacturer", "CN")));
+                asList(smallToySize, cnManufacturer));
+        Property bigToySize = storeApp.createProperty(SIZE_PROPERTY_KEY, "50");
         Item bigToy = storeApp.createItem("Big butterfly", "Big handmade butterfly", 199, singletonList(toys),
-                asList(new Property("size", "50"), new Property("manufacturer", "CN")));
-
+                asList(bigToySize, cnManufacturer));
+        Property blackJacketSize = storeApp.createProperty(SIZE_PROPERTY_KEY, "S");
+        Property uaeManufacturer = storeApp.createProperty(MANUFACTURER_PROPERTY_KEY, "UAE");
         Item blackJacket = storeApp.createItem("Jacket", "Black children jacket", 200, singletonList(cloth),
-                asList(new Property("size", "S"), new Property("manufacturer", "UAE")));
+                asList(blackJacketSize, uaeManufacturer));
+        Property redShoesSize = storeApp.createProperty(SIZE_PROPERTY_KEY, "39");
+        Property uaManufacturer = storeApp.createProperty(MANUFACTURER_PROPERTY_KEY, "UA");
         Item redShoes = storeApp.createItem("Shoes", "Red handmade shoes", 350, singletonList(cloth),
-                asList(new Property("size", "39"), new Property("manufacturer", "UA")));
+                asList(redShoesSize, uaManufacturer));
 
         Catalog childrenCatalog =
                 storeApp.createCatalog("Children Catalog", asList(smallToy, bigToy, blackJacket, redShoes));

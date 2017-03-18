@@ -9,7 +9,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 public class ConnectionManager {
-    private static final int MAX_CONNECTIONS = 5;
+    private static final int MAX_CONNECTIONS = 30;
     private final JdbcDataSource dataSource;
     private final JdbcConnectionPool connectionPool;
 
@@ -33,7 +33,7 @@ public class ConnectionManager {
     }
 
     public DataSource getDataSource() {
-        return dataSource;
+        return connectionPool;
     }
 
     public Connection getConnection() throws SQLException {
