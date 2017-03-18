@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface Storage<T extends StoredEntity<ID>, ID> {
 
-    T save(T entity) throws SQLException;
+    T save(T entity);
 
     T update(T entity);
 
