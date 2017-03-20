@@ -13,7 +13,9 @@ Update entities in `model` module with JAXB annotations.
 3\. Implement XML storage
 ---------------
 Create new implementation of `Storage` interface - `XmlStorage` that 
-uses JAXB to store given data inside `store.xml` file.
+uses JAXB to store data inside appropriate XML files - XML file name should be set via constructor.
+
+Each entity should have its own Storage implementation - use abstractions where possible.
 
 Ensure that result XML is valid against the XSD schema.
 
